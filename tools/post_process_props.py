@@ -42,7 +42,7 @@ def mangle_build_prop(prop, overrides):
     values = proppair.split("=")
     prop.put(values[0], values[1])
 
-  pass
+  prop.put("net.tethering.noprovisioning", "true")
 
 # Put the modifications that you need to make into the /default.prop into this
 # function. The prop object has get(name) and put(name,value) methods.
