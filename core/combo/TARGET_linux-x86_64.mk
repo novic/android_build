@@ -82,6 +82,7 @@ TARGET_GLOBAL_CFLAGS += \
 			-D_FORTIFY_SOURCE=2 \
 			-Wstrict-aliasing=2 \
 			-ffunction-sections \
+			-Wno-error=deprecated-declarations \
 			-finline-functions \
 			-finline-limit=300 \
 			-fno-short-enums \

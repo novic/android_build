@@ -83,6 +83,7 @@ $(combo_2nd_arch_prefix)TARGET_GLOBAL_CFLAGS += \
 			-Werror=format-security \
 			-D_FORTIFY_SOURCE=2 \
 			-Wstrict-aliasing=2 \
+			-Wno-error=deprecated-declarations \
 			-ffunction-sections \
 			-finline-functions \
 			-finline-limit=300 \
