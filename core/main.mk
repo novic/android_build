@@ -108,6 +108,11 @@ include $(BUILD_SYSTEM)/cleanbuild.mk
 # Bring in Qualcomm helper macros
 include $(BUILD_SYSTEM)/qcom_utils.mk
 
+## hardening ##
+WITH_DEXPREOPT := true
+WITH_DEXPREOPT_PIC := true
+DONT_DEXPREOPT_PREBUILTS := false
+
 # Bring in Mediatek helper macros too
 include $(BUILD_SYSTEM)/mtk_utils.mk
 
@@ -286,6 +291,11 @@ ifneq (,$(user_variant))
   # Target is secure in user builds.
   ADDITIONAL_DEFAULT_PROPERTIES += ro.secure=1
   ADDITIONAL_DEFAULT_PROPERTIES += security.perf_harden=1
+  ADDITIONAL_DEFAULT_PROPERTIES += persist.security.deny_new_usb=dynamic
+
+  ifeq ($(user_variant),user)
+    ADDITIONAL_DEFAULT_PROPERTIES += ro.adb.secure=1
+  endif
 
   ifeq ($(user_variant),userdebug)
     # Pick up some extra useful tools

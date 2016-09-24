@@ -1,0 +1,10 @@
+--- core/combo/TARGET_linux-x86_64.mk
++++ core/combo/TARGET_linux-x86_64.mk
+@@ -80,6 +80,7 @@ TARGET_GLOBAL_CFLAGS += \
+ 			-fwrapv \
+ 			-Wa,--noexecstack \
+ 			-Wdate-time \
++			-Wno-error=deprecated-declarations \
+ 			-Wsuggest-attribute=format \
+ 			-Wno-error=suggest-attribute=format \
+ 			-Werror=format-security \

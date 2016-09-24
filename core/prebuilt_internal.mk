@@ -63,6 +63,12 @@ ifeq (STATIC_LIBRARIES,$(LOCAL_MODULE_CLASS))
 endif
 endif
 
+ifeq (JAVA_LIBRARIES,$(LOCAL_IS_HOST_MODULE)$(LOCAL_MODULE_CLASS)$(filter true,$(LOCAL_UNINSTALLABLE_MODULE)))
+  prebuilt_module_is_dex_javalib := true
+else
+  prebuilt_module_is_dex_javalib :=
+endif
+
 ifeq ($(LOCAL_MODULE_CLASS),APPS)
 LOCAL_BUILT_MODULE_STEM := package.apk
 LOCAL_INSTALLED_MODULE_STEM := $(LOCAL_MODULE).apk
@@ -273,7 +279,39 @@ $(my_register_name): $(installed_apk_splits)
 
 endif # LOCAL_PACKAGE_SPLITS
 
-else # LOCAL_MODULE_CLASS != APPS
+else ifeq ($(prebuilt_module_is_dex_javalib),true)  # LOCAL_MODULE_CLASS != APPS
+# This is a target shared library, i.e. a jar with classes.dex.
+#######################################
+# defines built_odex along with rule to install odex
+include $(BUILD_SYSTEM)/dex_preopt_odex_install.mk
+#######################################
+ifdef LOCAL_DEX_PREOPT
+ifneq ($(dexpreopt_boot_jar_module),) # boot jar
+# boot jar's rules are defined in dex_preopt.mk
+dexpreopted_boot_jar := $(DEXPREOPT_BOOT_JAR_DIR_FULL_PATH)/$(dexpreopt_boot_jar_module)_nodex.jar
+$(built_module) : $(dexpreopted_boot_jar) | $(ACP)
+       $(call copy-file-to-target)
+
+# For libart boot jars, we don't have .odex files.
+else # ! boot jar
+$(built_odex): PRIVATE_MODULE := $(LOCAL_MODULE)
+# Use pattern rule - we may have multiple built odex files.
+$(built_odex) : $(dir $(LOCAL_BUILT_MODULE))% : $(my_prebuilt_src_file)
+	@echo "Dexpreopt Jar: $(PRIVATE_MODULE) ($@)"
+	$(call dexpreopt-one-file,$<,$@)
+
+$(built_module) : $(my_prebuilt_src_file) | $(ACP)
+	$(call copy-file-to-target)
+ifneq (nostripping,$(LOCAL_DEX_PREOPT))
+	$(call dexpreopt-remove-classes.dex,$@)
+endif
+endif # boot jar
+else # ! LOCAL_DEX_PREOPT
+$(built_module) : $(my_prebuilt_src_file) | $(ACP)
+	$(call copy-file-to-target)
+endif # LOCAL_DEX_PREOPT
+
+else  # ! prebuilt_module_is_dex_javalib
 ifneq ($(LOCAL_PREBUILT_STRIP_COMMENTS),)
 $(built_module) : $(my_prebuilt_src_file)
 	$(transform-prebuilt-to-target-strip-comments)
@@ -281,17 +319,22 @@ else
 $(built_module) : $(my_prebuilt_src_file) | $(ACP)
 	$(transform-prebuilt-to-target)
 endif
-endif # LOCAL_MODULE_CLASS != APPS
+endif # ! prebuilt_module_is_dex_javalib
 
 ifeq ($(LOCAL_IS_HOST_MODULE)$(LOCAL_MODULE_CLASS),JAVA_LIBRARIES)
 # for target java libraries, the LOCAL_BUILT_MODULE is in a product-specific dir,
 # while the deps should be in the common dir, so we make a copy in the common dir.
-# For nonstatic library, $(common_javalib_jar) is the dependency file,
-# while $(common_classes_jar) is used to link.
 common_classes_jar := $(intermediates.COMMON)/classes.jar
 common_javalib_jar := $(intermediates.COMMON)/javalib.jar
 
 $(common_classes_jar) $(common_javalib_jar): PRIVATE_MODULE := $(LOCAL_MODULE)
+
+ifeq ($(prebuilt_module_is_dex_javalib),true)
+# For prebuilt shared Java library we don't have classes.jar.
+$(common_javalib_jar) : $(my_src_jar) | $(ACP)
+	$(transform-prebuilt-to-target)
+
+else  # ! prebuilt_module_is_dex_javalib
 
 ifneq ($(filter %.aar, $(my_prebuilt_src_file)),)
 # This is .aar file, archive of classes.jar and Android resources.
@@ -307,6 +350,7 @@ else
 # This is jar file.
 my_src_jar := $(my_prebuilt_src_file)
 endif
+
 $(common_classes_jar) : $(my_src_jar) | $(ACP)
 	$(transform-prebuilt-to-target)
 
@@ -315,8 +359,11 @@ $(common_javalib_jar) : $(common_classes_jar) | $(ACP)
 
 # make sure the classes.jar and javalib.jar are built before $(LOCAL_BUILT_MODULE)
 $(built_module) : $(common_javalib_jar)
+
+endif # ! prebuilt_module_is_dex_javalib
 endif # TARGET JAVA_LIBRARIES
 
+ifneq ($(prebuilt_module_is_dex_javalib),true)
 ifeq ($(LOCAL_MODULE_CLASS),JAVA_LIBRARIES)
 $(intermediates.COMMON)/classes.jack : PRIVATE_JILL_FLAGS:=$(LOCAL_JILL_FLAGS)
 $(intermediates.COMMON)/classes.jack : $(my_src_jar) $(LOCAL_MODULE_MAKEFILE) \
@@ -324,6 +371,7 @@ $(intermediates.COMMON)/classes.jack : $(my_src_jar) $(LOCAL_MODULE_MAKEFILE) \
 	$(transform-jar-to-jack)
 
 endif # JAVA_LIBRARIES
+endif # ! prebuilt_module_is_dex_javalib
 
 $(built_module) : $(LOCAL_MODULE_MAKEFILE) $(LOCAL_ADDITIONAL_DEPENDENCIES)
 

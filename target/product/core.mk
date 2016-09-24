@@ -45,12 +45,12 @@ PRODUCT_PACKAGES += \
     libpac \
     PrintSpooler \
     ProxyHandler \
-    QuickSearchBox \
     Settings \
     SharedStorageBackup \
     Telecom \
     TeleService \
     VpnDialogs \
-    MmsService
+    MmsService \
+    Updater
 
 $(call inherit-product, $(SRC_TARGET_DIR)/product/core_base.mk)
