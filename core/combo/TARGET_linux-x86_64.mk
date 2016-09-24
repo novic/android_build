@@ -91,6 +91,7 @@ TARGET_GLOBAL_CFLAGS += \
 			-funswitch-loops \
 			-funwind-tables \
 			-fstack-protector \
+			-fstack-check \
 			-m64 \
 			-no-canonical-prefixes \
 			-fno-canonical-system-headers
