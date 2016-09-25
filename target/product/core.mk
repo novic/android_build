@@ -51,6 +51,8 @@ PRODUCT_PACKAGES += \
     TeleService \
     VpnDialogs \
     MmsService \
-    Updater
+    Updater \
+    F-Droid \
+    Silence
 
 $(call inherit-product, $(SRC_TARGET_DIR)/product/core_base.mk)
