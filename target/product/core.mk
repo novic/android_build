@@ -31,7 +31,6 @@ PRODUCT_PACKAGES += \
     DeskClock \
     DocumentsUI \
     DownloadProviderUi \
-    Email \
     ExactCalculator \
     ExternalStorageProvider \
     FusedLocation \
@@ -50,9 +49,9 @@ PRODUCT_PACKAGES += \
     Telecom \
     TeleService \
     VpnDialogs \
-    MmsService \
-    Updater \
-    F-Droid \
-    Silence
+    MmsService
+    # Updater
+    # F-Droid
+    # Email
 
 $(call inherit-product, $(SRC_TARGET_DIR)/product/core_base.mk)
